@@ -12,6 +12,9 @@
     "build:main": "esbuild main.ts --bundle --format=cjs --platform=node --outfile=dist/main.js --external:electron --external:@main/* --external:discord.js",
     "build": "npm run build:renderer && npm run build:main"
   },
+  "dependencies": {
+    "discord.js": "^14.16.0"
+  },
   "devDependencies": {
     "esbuild": "^0.21.0",
     "typescript": "^5.0.0"
