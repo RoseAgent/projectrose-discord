@@ -4,6 +4,7 @@
   "version": "1.0.0",
   "description": "Discord channel integration and messaging",
   "author": "ProjectRose",
+  "latin": "Rosa colloquii",
   "navItem": { "label": "Discord", "iconName": "discord" },
   "provides": {
     "pageView": true,
