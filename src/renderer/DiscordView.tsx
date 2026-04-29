@@ -81,13 +81,28 @@ export function DiscordView(): JSX.Element {
     messages, hasMoreMessages, loadingMessages,
     input,
     connect, disconnect, selectChannel,
-    fetchOlderMessages, sendMessage, setInput
+    fetchOlderMessages, sendMessage, setInput,
+    initEnabledChannels
   } = useDiscordStore()
 
   const messageListRef = useRef<HTMLDivElement>(null)
   const isNearBottomRef = useRef(true)
 
   const activeMessages = activeChannelId ? (messages[activeChannelId] ?? []) : []
+
+  // The Discord store keeps its own enabledChannelIds copy; settings owns the
+  // source of truth, so seed/refresh it whenever discordChannels changes.
+  useEffect(() => {
+    initEnabledChannels(discordChannels ?? [])
+  }, [discordChannels, initEnabledChannels])
+
+  // Auto-connect on mount when a token is configured. The main-side handler is
+  // idempotent (returns existing channels if already connected), so this also
+  // syncs renderer state with a connection started by the extension's auto-connect.
+  useEffect(() => {
+    if (discordBotToken && !connected) connect()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [discordBotToken])
 
   useEffect(() => {
     if (isNearBottomRef.current && messageListRef.current) {
