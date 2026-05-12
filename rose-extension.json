@@ -11,6 +11,7 @@
     "globalSettings": true,
     "agentTools": true,
     "main": true,
+    "broadcast": true,
     "tools": [
       {
         "name": "list_discord_channels",

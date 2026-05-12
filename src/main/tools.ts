@@ -1,10 +1,47 @@
-import { readSettings } from '@main/ipc/settingsHandlers'
-import { fetchDiscordChannels, fetchDiscordMessages, sendDiscordMessage } from './service'
-import type { ExtensionToolEntry } from './types'
+// Tool implementations for rose-discord.
+//
+// Settings access goes through the contract: tools must NOT import host
+// internals directly. `register(ctx)` in `main.ts` stashes the ctx via
+// `setRoseDiscordCtx` so the tool execute functions can call
+// `ctx.getSettings()` when invoked.
 
-async function handleListDiscordChannels(_input: Record<string, unknown>, projectRoot: string): Promise<string> {
-  const cfg = await readSettings(projectRoot)
-  const enabledIds = new Set(cfg.discordChannels)
+import { fetchDiscordChannels, fetchDiscordMessages, sendDiscordMessage } from './service'
+import type {
+  ExtensionToolEntry,
+  ExtensionMainContext
+} from '../../../../ProjectRose/src/shared/extension-contract'
+
+let activeCtx: ExtensionMainContext | null = null
+
+export function setRoseDiscordCtx(ctx: ExtensionMainContext): void {
+  activeCtx = ctx
+}
+
+function requireCtx(): ExtensionMainContext {
+  if (!activeCtx) {
+    throw new Error('rose-discord: tool invoked before register(ctx) completed')
+  }
+  return activeCtx
+}
+
+interface DiscordSettings {
+  discordBotToken?: string
+  discordChannels?: string[]
+}
+
+async function loadDiscordSettings(): Promise<DiscordSettings> {
+  const raw = (await requireCtx().getSettings()) as Record<string, unknown>
+  return {
+    discordBotToken: typeof raw.discordBotToken === 'string' ? raw.discordBotToken : undefined,
+    discordChannels: Array.isArray(raw.discordChannels)
+      ? raw.discordChannels.filter((v): v is string => typeof v === 'string')
+      : undefined
+  }
+}
+
+async function handleListDiscordChannels(): Promise<string> {
+  const cfg = await loadDiscordSettings()
+  const enabledIds = new Set(cfg.discordChannels ?? [])
   const all = await fetchDiscordChannels()
   const channels = enabledIds.size > 0 ? all.filter((c) => enabledIds.has(c.id)) : all
   if (channels.length === 0) return 'No Discord channels are enabled. Configure them in Settings > Discord.'
@@ -17,11 +54,11 @@ async function handleListDiscordChannels(_input: Record<string, unknown>, projec
   ).join('\n\n')
 }
 
-async function handleReadDiscordMessages(input: Record<string, unknown>, projectRoot: string): Promise<string> {
+async function handleReadDiscordMessages(input: Record<string, unknown>): Promise<string> {
   const channelId = String(input.channelId || '')
   const limit = Math.min(Number(input.limit) || 20, 100)
   if (!channelId) return 'Missing channelId parameter.'
-  const cfg = await readSettings(projectRoot)
+  const cfg = await loadDiscordSettings()
   if (!cfg.discordBotToken) return 'Discord not configured. Set a bot token in Settings.'
   const messages = await fetchDiscordMessages(channelId, limit)
   if (messages.length === 0) return 'No messages found in that channel.'

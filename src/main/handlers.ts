@@ -1,6 +1,6 @@
 import { ipcMain } from 'electron'
 import * as discord from './service'
-import type { ExtensionMainContext } from './types'
+import type { ExtensionMainContext } from '../../../../ProjectRose/src/shared/extension-contract'
 
 export function registerHandlers(ctx: ExtensionMainContext): () => void {
   ipcMain.handle('rose-discord:connect', async () => {

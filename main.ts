@@ -1,9 +1,13 @@
 import { registerHandlers } from './src/main/handlers'
 import { connect as connectDiscord } from './src/main/service'
-import { DISCORD_TOOLS } from './src/main/tools'
-import type { ExtensionMainContext } from './src/main/types'
+import { DISCORD_TOOLS, setRoseDiscordCtx } from './src/main/tools'
+import type { ExtensionMainContext } from '../../ProjectRose/src/shared/extension-contract'
 
 export function register(ctx: ExtensionMainContext): () => void {
+  // Stash the ctx so the tool execute functions (which only receive
+  // input + projectRoot + toolCtx) can read settings via the contract
+  // instead of importing host internals.
+  setRoseDiscordCtx(ctx)
   ctx.registerTools(DISCORD_TOOLS)
   const cleanup = registerHandlers(ctx)
 
