@@ -1,4 +1,4 @@
-import { readSettings } from '@main/ipc/settingsHandlers'
+import { readSettings } from './hostBridge'
 import { fetchDiscordChannels, fetchDiscordMessages, sendDiscordMessage } from './service'
 import type { ExtensionToolEntry } from './types'
 

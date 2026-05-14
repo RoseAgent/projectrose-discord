@@ -1,9 +1,11 @@
 import { registerHandlers } from './src/main/handlers'
 import { connect as connectDiscord } from './src/main/service'
 import { DISCORD_TOOLS } from './src/main/tools'
+import { setHost } from './src/main/hostBridge'
 import type { ExtensionMainContext } from './src/main/types'
 
 export function register(ctx: ExtensionMainContext): () => void {
+  setHost(ctx)
   ctx.registerTools(DISCORD_TOOLS)
   const cleanup = registerHandlers(ctx)
 
